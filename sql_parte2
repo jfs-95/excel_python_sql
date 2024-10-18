@@ -1,0 +1,56 @@
+DELIMITER $
+
+CREATE PROCEDURE DT(
+		IN tabela_origem VARCHAR(64),
+		IN tabela_destino VARCHAR(64)
+		)
+	
+BEGIN
+	SET @criar_tabela = CONCAT('CREATE TABLE ', tabela_destino, ' LIKE ', tabela_origem);
+	PREPARE gaveta FROM @criar_tabela;
+	EXECUTE gaveta;
+	DEALLOCATE PREPARE gaveta;
+	
+	SET @inserir_dados = CONCAT('INSERT INTO ', tabela_destino, ' SELECT * FROM ', tabela_origem);
+	PREPARE gaveta FROM @inserir_dados;
+	EXECUTE gaveta;
+	DEALLOCATE PREPARE gaveta;
+END $
+
+DELIMITER ;
+
+CALL DT('TOTAL_P_V','EDIT_TPV');
+
+ALTER TABLE EDIT_TPV
+ADD COLUMN id_dados int FIRST;
+
+UPDATE EDIT_TPV
+SET id_dados = 1;
+
+ALTER TABLE EDIT_TPV
+ADD COLUMN ANO YEAR;
+
+UPDATE EDIT_TPV
+SET ANO = 2020;
+
+ALTER TABLE df_p_mais_v_total
+ADD COLUMN id_dados int FIRST;
+
+UPDATE df_p_mais_v_total
+SET id_dados = 1;
+
+CREATE TABLE dados_empresa(
+		iddados INT,
+		razao_social VARCHAR(100),
+		cnpj VARCHAR(30),
+		data_abertura YEAR
+		)
+		
+INSERT INTO dados_empresa VALUES (1,'JF Silva','4141414141/0001-51',2020);
+		
+SELECT d.razao_social, t.descricao, t.quantidade, df.produto_mais_vendido, df.quantidade
+FROM dados_empresa d
+INNER JOIN total_p_v t
+ON d.iddados = t.id_dados
+INNER JOIN df_p_mais_v_total df
+ON d.iddados = df.id_dados;
